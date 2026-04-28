@@ -45,3 +45,38 @@ java -cp out app.BudgetBookApp
 ```
 
 資料會儲存在 `data` 資料夾中的 CSV 檔案。
+
+## GitHub 協作方式
+
+本專案採用 `main / dev / feature` 分支協作流程。
+
+### 分支說明
+
+- `main`：穩定版本，最後繳交與 Demo 使用。
+- `dev`：開發整合版本，組員完成的功能會先合併到這裡。
+- `feature/功能名稱`：個人功能分支，每位組員開自己的分支開發。
+
+### 第一次下載專案
+
+```bash
+git clone https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book.git
+cd OOP-G13-Personal-Budget-Book
+git checkout dev
+git pull origin dev
+```
+
+
+### 開始開發新功能
+請先從 dev 分支建立自己的功能分支：
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feature/功能名稱
+```
+
+修改完成後上傳：
+```bash
+git add .
+git commit -m "說明本次修改內容"
+git push origin feature/功能名稱
+```
