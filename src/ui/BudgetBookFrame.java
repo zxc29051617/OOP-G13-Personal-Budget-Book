@@ -7,10 +7,8 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GradientPaint;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -18,9 +16,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 public class BudgetBookFrame extends JFrame {
     private final BudgetBookStore store;
@@ -28,15 +24,18 @@ public class BudgetBookFrame extends JFrame {
     private final CardLayout cards = new CardLayout();
     private final JPanel content = new JPanel(cards);
     private final Map<String, RefreshablePanel> panels = new LinkedHashMap<>();
+    private final Map<String, JButton> navButtons = new LinkedHashMap<>();
 
     public BudgetBookFrame(BudgetBookStore store) {
         this.store = store;
         this.stats = new StatsService(store);
         setTitle("個人記帳本 - Group 13");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(1120, 720));
+        setMinimumSize(new Dimension(420, 720));
+        setPreferredSize(new Dimension(460, 780));
         setLocationByPlatform(true);
         buildLayout();
+        pack();
         showPanel("home");
     }
 
@@ -62,15 +61,30 @@ public class BudgetBookFrame extends JFrame {
         if (panel != null) {
             panel.refresh();
             cards.show(content, key);
+            updateNavSelection(key);
         }
     }
 
     private void buildLayout() {
-        JPanel root = new JPanel(new BorderLayout());
-        root.setBackground(new Color(247, 248, 250));
-        root.add(buildSidebar(), BorderLayout.WEST);
-        root.add(content, BorderLayout.CENTER);
+        JPanel root = new JPanel(new GridBagLayout());
+        root.setBackground(Ui.BACKGROUND);
         setContentPane(root);
+
+        JPanel appShell = new JPanel(new BorderLayout());
+        appShell.setBackground(Ui.SURFACE);
+        appShell.setPreferredSize(new Dimension(420, 720));
+        appShell.setMinimumSize(new Dimension(390, 660));
+        appShell.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, new Color(230, 230, 220)));
+
+        content.setOpaque(false);
+        appShell.add(content, BorderLayout.CENTER);
+        appShell.add(buildBottomNav(), BorderLayout.SOUTH);
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.weightx = 1;
+        c.weighty = 1;
+        c.fill = GridBagConstraints.BOTH;
+        root.add(appShell, c);
 
         addPanel("home", new HomePanel(this));
         addPanel("quick", new QuickEntryPanel(this));
@@ -80,41 +94,26 @@ public class BudgetBookFrame extends JFrame {
         addPanel("settings", new SettingsPanel(this));
     }
 
-    private JPanel buildSidebar() {
-        JPanel sidebar = new JPanel(new BorderLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setPaint(new GradientPaint(0, 0, Ui.SIDEBAR, 0, getHeight(), new Color(22, 86, 94)));
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.dispose();
-            }
-        };
-        sidebar.setPreferredSize(new Dimension(230, 0));
-        sidebar.setBorder(BorderFactory.createEmptyBorder(26, 16, 22, 16));
-
-        JLabel title = new JLabel("<html><b>個人記帳本</b><br><span style='font-size:10px'>Group 13 Finance</span></html>");
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(0, 4, 18, 0));
-        sidebar.add(title, BorderLayout.NORTH);
-
-        JPanel nav = new JPanel(new GridLayout(0, 1, 0, 10));
-        nav.setOpaque(false);
-        nav.add(navButton("首頁", "home"));
-        nav.add(navButton("快速記帳", "quick"));
-        nav.add(navButton("分析", "analysis"));
-        nav.add(navButton("錢包", "wallets"));
-        nav.add(navButton("歷史", "history"));
-        nav.add(navButton("設定", "settings"));
-        sidebar.add(nav, BorderLayout.CENTER);
-        return sidebar;
+    private JPanel buildBottomNav() {
+        JPanel nav = new JPanel(new GridLayout(1, 6, 4, 0));
+        nav.setBackground(Ui.CARD);
+        nav.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, Ui.LINE),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        addNavButton(nav, "home", "首頁");
+        addNavButton(nav, "quick", "記帳");
+        addNavButton(nav, "analysis", "分析");
+        addNavButton(nav, "wallets", "錢包");
+        addNavButton(nav, "history", "紀錄");
+        addNavButton(nav, "settings", "設定");
+        return nav;
     }
 
-    private JButton navButton(String text, String key) {
+    private void addNavButton(JPanel nav, String key, String text) {
         JButton button = Ui.navButton(text);
         button.addActionListener(e -> showPanel(key));
-        return button;
+        navButtons.put(key, button);
+        nav.add(button);
     }
 
     private void addPanel(String key, RefreshablePanel panel) {
@@ -125,6 +124,12 @@ public class BudgetBookFrame extends JFrame {
     private void refreshAll() {
         for (RefreshablePanel panel : panels.values()) {
             panel.refresh();
+        }
+    }
+
+    private void updateNavSelection(String selectedKey) {
+        for (Map.Entry<String, JButton> entry : navButtons.entrySet()) {
+            Ui.setNavSelected(entry.getValue(), entry.getKey().equals(selectedKey));
         }
     }
 }

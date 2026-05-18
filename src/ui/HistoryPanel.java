@@ -1,65 +1,55 @@
 package ui;
 
-import model.Account;
-import model.Transaction;
-
 import java.awt.BorderLayout;
-import javax.swing.JButton;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 
 public class HistoryPanel extends RefreshablePanel {
     private final BudgetBookFrame frame;
-    private final DefaultTableModel model = new DefaultTableModel(
-            new String[]{"ID", "日期", "類型", "分類", "帳戶", "金額", "備註"}, 0);
-    private final JTable table = new JTable(model);
+    private final JPanel transactionContainer = new JPanel(new BorderLayout());
 
     public HistoryPanel(BudgetBookFrame frame) {
         this.frame = frame;
-        setLayout(new BorderLayout(18, 18));
-        setBackground(Ui.BACKGROUND);
-        Ui.pad(this);
-        JPanel header = new JPanel(new BorderLayout(0, 6));
-        header.setOpaque(false);
-        header.add(Ui.title("歷史紀錄"), BorderLayout.NORTH);
-        header.add(Ui.small("檢視所有收入與支出資料"), BorderLayout.SOUTH);
-        add(header, BorderLayout.NORTH);
+        setLayout(new BorderLayout());
+        setBackground(Ui.SURFACE);
+        transactionContainer.setOpaque(false);
 
-        JPanel card = Ui.card();
-        card.setLayout(new BorderLayout(0, 10));
-        Ui.styleTable(table);
-        card.add(new JScrollPane(table), BorderLayout.CENTER);
-        JButton delete = Ui.quietButton("刪除選取紀錄");
-        delete.addActionListener(e -> deleteSelected());
-        card.add(delete, BorderLayout.SOUTH);
-        add(card, BorderLayout.CENTER);
+        JPanel body = Ui.page();
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.add(buildHeader());
+        body.add(Box.createVerticalStrut(16));
+        body.add(buildHistoryCard());
+        add(Ui.scroll(body), BorderLayout.CENTER);
     }
 
     @Override
     public void refresh() {
-        model.setRowCount(0);
-        for (Transaction t : frame.getStore().getTransactions()) {
-            Account account = frame.getStore().findAccount(t.getAccountId());
-            model.addRow(new Object[]{
-                    t.getId(),
-                    t.getDate(),
-                    t.getKind() == Transaction.Kind.INCOME ? "收入" : "支出",
-                    t.getCategory(),
-                    account == null ? "已刪除帳戶" : account.getName(),
-                    Money.format(t.getAmount()),
-                    t.getNote()
-            });
-        }
+        transactionContainer.removeAll();
+        transactionContainer.add(TransactionCards.all(frame, this::deleteTransaction), BorderLayout.CENTER);
+        transactionContainer.revalidate();
+        transactionContainer.repaint();
     }
 
-    private void deleteSelected() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            return;
-        }
-        int id = Integer.parseInt(String.valueOf(model.getValueAt(row, 0)));
+    private JPanel buildHeader() {
+        JPanel header = new JPanel(new BorderLayout(0, 4));
+        header.setOpaque(false);
+        header.add(Ui.appName(), BorderLayout.NORTH);
+        header.add(Ui.title("交易紀錄"), BorderLayout.CENTER);
+        header.add(Ui.small("查看並管理所有收入與支出"), BorderLayout.SOUTH);
+        header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
+        return header;
+    }
+
+    private JPanel buildHistoryCard() {
+        JPanel card = Ui.card();
+        card.setLayout(new BorderLayout(0, 12));
+        card.add(Ui.sectionTitle("全部紀錄"), BorderLayout.NORTH);
+        card.add(transactionContainer, BorderLayout.CENTER);
+        return card;
+    }
+
+    private void deleteTransaction(int id) {
         frame.getStore().deleteTransaction(id);
         frame.persistAndRefresh();
     }

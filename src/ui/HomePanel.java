@@ -1,116 +1,144 @@
 package ui;
 
-import model.Account;
-import model.Transaction;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.time.YearMonth;
-import java.util.List;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.JProgressBar;
 
 public class HomePanel extends RefreshablePanel {
     private final BudgetBookFrame frame;
-    private final JLabel balance = metricLabel();
-    private final JLabel income = metricLabel();
-    private final JLabel expense = metricLabel();
-    private final JLabel budget = metricLabel();
-    private final DefaultTableModel recentModel = new DefaultTableModel(
-            new String[]{"日期", "類型", "分類", "帳戶", "金額", "備註"}, 0);
+    private final JLabel balance = metricLabel(30);
+    private final JLabel income = metricLabel(18);
+    private final JLabel expense = metricLabel(18);
+    private final JLabel budget = metricLabel(18);
+    private final JProgressBar budgetProgress = new JProgressBar(0, 100);
+    private final JPanel recentContainer = new JPanel(new BorderLayout());
 
     public HomePanel(BudgetBookFrame frame) {
         this.frame = frame;
-        setLayout(new BorderLayout(18, 18));
-        setBackground(Ui.BACKGROUND);
-        Ui.pad(this);
+        setLayout(new BorderLayout());
+        setBackground(Ui.SURFACE);
 
-        add(buildHeader(), BorderLayout.NORTH);
+        recentContainer.setOpaque(false);
 
-        JPanel center = new JPanel(new BorderLayout(18, 18));
-        center.setOpaque(false);
-        center.add(buildMetrics(), BorderLayout.NORTH);
-        center.add(buildRecent(), BorderLayout.CENTER);
-        add(center, BorderLayout.CENTER);
+        JPanel body = Ui.page();
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.add(buildHeader());
+        body.add(Box.createVerticalStrut(16));
+        body.add(buildBalanceCard());
+        body.add(Box.createVerticalStrut(12));
+        body.add(buildMetrics());
+        body.add(Box.createVerticalStrut(12));
+        body.add(buildBudgetCard());
+        body.add(Box.createVerticalStrut(12));
+        body.add(buildRecent());
+
+        add(Ui.scroll(body), BorderLayout.CENTER);
     }
 
     @Override
     public void refresh() {
         YearMonth month = YearMonth.now();
+        double monthIncome = frame.getStats().monthlyIncome(month);
         double monthExpense = frame.getStats().monthlyExpense(month);
-        balance.setText(Money.format(frame.getStats().totalBalance()));
-        income.setText(Money.format(frame.getStats().monthlyIncome(month)));
-        expense.setText(Money.format(monthExpense));
         double limit = frame.getStore().getSettings().getMonthlyLimit();
-        budget.setText(limit <= 0 ? "未設定" : String.format("%.0f%%", monthExpense / limit * 100));
+        int percent = limit <= 0 ? 0 : (int) Math.min(100, Math.round(monthExpense / limit * 100));
 
-        recentModel.setRowCount(0);
-        List<Transaction> rows = frame.getStore().getTransactions();
-        for (int i = 0; i < Math.min(8, rows.size()); i++) {
-            Transaction t = rows.get(i);
-            Account account = frame.getStore().findAccount(t.getAccountId());
-            recentModel.addRow(new Object[]{
-                    t.getDate(),
-                    t.getKind() == Transaction.Kind.INCOME ? "收入" : "支出",
-                    t.getCategory(),
-                    account == null ? "已刪除帳戶" : account.getName(),
-                    Money.format(t.getAmount()),
-                    t.getNote()
-            });
-        }
+        balance.setText(Money.format(frame.getStats().totalBalance()));
+        income.setText(Money.format(monthIncome));
+        expense.setText(Money.format(monthExpense));
+        budget.setText(limit <= 0 ? "未設定" : percent + "%");
+        budgetProgress.setValue(percent);
+
+        recentContainer.removeAll();
+        recentContainer.add(TransactionCards.recent(frame, 5), BorderLayout.CENTER);
+        recentContainer.revalidate();
+        recentContainer.repaint();
+    }
+
+    private JPanel buildHeader() {
+        JPanel header = new JPanel(new BorderLayout(12, 0));
+        header.setOpaque(false);
+        JPanel text = new JPanel(new BorderLayout(0, 4));
+        text.setOpaque(false);
+        text.add(Ui.appName(), BorderLayout.NORTH);
+        text.add(Ui.title("首頁"), BorderLayout.CENTER);
+        text.add(Ui.small("掌握結餘、預算與最近交易"), BorderLayout.SOUTH);
+        header.add(text, BorderLayout.WEST);
+
+        JButton quick = Ui.primaryButton("快速記帳");
+        quick.addActionListener(e -> frame.showPanel("quick"));
+        header.add(quick, BorderLayout.EAST);
+        header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
+        return header;
+    }
+
+    private JPanel buildBalanceCard() {
+        JPanel card = Ui.tintedCard(Ui.GREEN_SOFT);
+        card.setLayout(new BorderLayout(0, 8));
+        card.add(Ui.small("TOTAL BALANCE"), BorderLayout.NORTH);
+        balance.setForeground(Ui.GREEN_DARK);
+        card.add(balance, BorderLayout.CENTER);
+        card.add(Ui.caption("所有錢包加總後的目前餘額"), BorderLayout.SOUTH);
+        return card;
     }
 
     private JPanel buildMetrics() {
-        JPanel grid = new JPanel(new GridLayout(1, 4, 14, 0));
+        JPanel grid = new JPanel(new GridLayout(1, 2, 10, 0));
         grid.setOpaque(false);
-        grid.add(metricCard("總結餘", balance, Ui.BLUE));
-        grid.add(metricCard("本月收入", income, Ui.GREEN));
-        grid.add(metricCard("本月支出", expense, Ui.RED));
-        grid.add(metricCard("預算使用率", budget, new Color(145, 99, 36)));
+        grid.add(metricCard("本月收入", income, Ui.GREEN_DARK, Ui.MINT));
+        grid.add(metricCard("本月支出", expense, Ui.RED, Ui.CREAM));
         return grid;
     }
 
-    private JPanel metricCard(String title, JLabel value, Color color) {
-        JPanel card = Ui.card();
-        card.setLayout(new BorderLayout(0, 10));
+    private JPanel metricCard(String title, JLabel value, Color valueColor, Color background) {
+        JPanel card = Ui.tintedCard(background);
+        card.setLayout(new BorderLayout(0, 8));
         card.add(Ui.small(title), BorderLayout.NORTH);
-        value.setForeground(color);
+        value.setForeground(valueColor);
         card.add(value, BorderLayout.CENTER);
         return card;
     }
 
-    private JPanel buildHeader() {
-        JPanel header = new JPanel(new BorderLayout(16, 0));
-        header.setOpaque(false);
-        JPanel copy = new JPanel(new BorderLayout(0, 6));
-        copy.setOpaque(false);
-        copy.add(Ui.title("首頁總覽"), BorderLayout.NORTH);
-        copy.add(Ui.small("追蹤多帳戶收支、預算狀態與最近紀錄"), BorderLayout.SOUTH);
-        header.add(copy, BorderLayout.WEST);
-        JButton quick = Ui.primaryButton("新增一筆");
-        quick.addActionListener(e -> frame.showPanel("quick"));
-        header.add(quick, BorderLayout.EAST);
-        return header;
+    private JPanel buildBudgetCard() {
+        JPanel card = Ui.card();
+        card.setLayout(new BorderLayout(0, 10));
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.add(Ui.sectionTitle("預算使用率"), BorderLayout.WEST);
+        budget.setHorizontalAlignment(JLabel.RIGHT);
+        budget.setForeground(Ui.ORANGE);
+        top.add(budget, BorderLayout.EAST);
+        card.add(top, BorderLayout.NORTH);
+
+        budgetProgress.setStringPainted(false);
+        budgetProgress.setForeground(Ui.GREEN);
+        budgetProgress.setBackground(new Color(231, 231, 221));
+        budgetProgress.setBorderPainted(false);
+        card.add(budgetProgress, BorderLayout.CENTER);
+        card.add(Ui.caption("依照設定頁的每月支出預算計算"), BorderLayout.SOUTH);
+        return card;
     }
 
     private JPanel buildRecent() {
         JPanel card = Ui.card();
         card.setLayout(new BorderLayout(0, 12));
-        card.add(Ui.sectionTitle("最近紀錄"), BorderLayout.NORTH);
-        JTable table = new JTable(recentModel);
-        Ui.styleTable(table);
-        card.add(new JScrollPane(table), BorderLayout.CENTER);
+        card.add(Ui.sectionTitle("最近交易"), BorderLayout.NORTH);
+        card.add(recentContainer, BorderLayout.CENTER);
         return card;
     }
 
-    private static JLabel metricLabel() {
+    private static JLabel metricLabel(int size) {
         JLabel label = new JLabel();
-        label.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 24));
+        label.setFont(new Font(Font.SANS_SERIF, Font.BOLD, size));
+        label.setForeground(Ui.TEXT);
         return label;
     }
 }
