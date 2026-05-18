@@ -19,6 +19,7 @@ public class HomePanel extends RefreshablePanel {
     private final JLabel expense = metricLabel(18);
     private final JLabel budget = metricLabel(18);
     private final JProgressBar budgetProgress = new JProgressBar(0, 100);
+    private final TreeGardenPanel treePanel = new TreeGardenPanel();
     private final JPanel recentContainer = new JPanel(new BorderLayout());
 
     public HomePanel(BudgetBookFrame frame) {
@@ -37,6 +38,8 @@ public class HomePanel extends RefreshablePanel {
         body.add(buildMetrics());
         body.add(Box.createVerticalStrut(12));
         body.add(buildBudgetCard());
+        body.add(Box.createVerticalStrut(12));
+        body.add(buildTreeCard());
         body.add(Box.createVerticalStrut(12));
         body.add(buildRecent());
 
@@ -57,6 +60,8 @@ public class HomePanel extends RefreshablePanel {
         budget.setText(limit <= 0 ? "未設定" : percent + "%");
         budgetProgress.setValue(percent);
 
+        treePanel.setTreeState(frame.getStats().monthlyWaterCount(month), frame.getStats().monthlyTreeStatus(month));
+
         recentContainer.removeAll();
         recentContainer.add(TransactionCards.recent(frame, 5), BorderLayout.CENTER);
         recentContainer.revalidate();
@@ -70,13 +75,17 @@ public class HomePanel extends RefreshablePanel {
         text.setOpaque(false);
         text.add(Ui.appName(), BorderLayout.NORTH);
         text.add(Ui.title("首頁"), BorderLayout.CENTER);
-        text.add(Ui.small("掌握結餘、預算與最近交易"), BorderLayout.SOUTH);
+        text.add(Ui.small("掌握結餘、預算與本月小樹"), BorderLayout.SOUTH);
         header.add(text, BorderLayout.WEST);
 
+        JPanel actions = new JPanel(new GridLayout(2, 1, 0, 8));
+        actions.setOpaque(false);
+        actions.add(frame.settingsButton());
         JButton quick = Ui.primaryButton("快速記帳");
         quick.addActionListener(e -> frame.showPanel("quick"));
-        header.add(quick, BorderLayout.EAST);
-        header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
+        actions.add(quick);
+        header.add(actions, BorderLayout.EAST);
+        header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 102));
         return header;
     }
 
@@ -125,6 +134,13 @@ public class HomePanel extends RefreshablePanel {
         card.add(budgetProgress, BorderLayout.CENTER);
         card.add(Ui.caption("依照設定頁的每月支出預算計算"), BorderLayout.SOUTH);
         return card;
+    }
+
+    private JPanel buildTreeCard() {
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.add(treePanel, BorderLayout.CENTER);
+        return wrapper;
     }
 
     private JPanel buildRecent() {

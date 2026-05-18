@@ -1,24 +1,27 @@
 package ui;
 
-import model.BudgetSettings;
-
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.time.YearMonth;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import service.StatsService;
 
 public class SettingsPanel extends RefreshablePanel {
     private final BudgetBookFrame frame;
     private final JTextField monthlyLimit = new JTextField(16);
-    private final JLabel points = new JLabel();
-    private final JLabel level = new JLabel();
+    private final TreeGardenPanel treePanel = new TreeGardenPanel();
+    private final JLabel waterText = new JLabel();
+    private final JLabel completedText = new JLabel();
+    private final JProgressBar treeProgress = new JProgressBar(0, 100);
 
     public SettingsPanel(BudgetBookFrame frame) {
         this.frame = frame;
@@ -32,16 +35,22 @@ public class SettingsPanel extends RefreshablePanel {
         body.add(Box.createVerticalStrut(16));
         body.add(buildBudgetCard());
         body.add(Box.createVerticalStrut(12));
-        body.add(buildPointsCard());
+        body.add(buildTreeCard());
         add(Ui.scroll(body), BorderLayout.CENTER);
     }
 
     @Override
     public void refresh() {
-        BudgetSettings settings = frame.getStore().getSettings();
-        monthlyLimit.setText(String.valueOf((int) settings.getMonthlyLimit()));
-        points.setText(settings.getPoints() + " 點");
-        level.setText(settings.getTreeLevel());
+        YearMonth month = YearMonth.now();
+        int waterCount = frame.getStats().monthlyWaterCount(month);
+        String status = frame.getStats().monthlyTreeStatus(month);
+        int percent = frame.getStats().monthlyTreeProgressPercent(month);
+
+        monthlyLimit.setText(String.valueOf((int) frame.getStore().getSettings().getMonthlyLimit()));
+        treePanel.setTreeState(waterCount, status);
+        waterText.setText(waterCount + " / " + StatsService.MONTHLY_TREE_GOAL + " 次澆水");
+        completedText.setText("已完成 " + frame.getStats().completedTreeCount() + " 棵樹");
+        treeProgress.setValue(percent);
     }
 
     private JPanel buildHeader() {
@@ -49,7 +58,7 @@ public class SettingsPanel extends RefreshablePanel {
         header.setOpaque(false);
         header.add(Ui.appName(), BorderLayout.NORTH);
         header.add(Ui.title("設定"), BorderLayout.CENTER);
-        header.add(Ui.small("調整預算與查看記帳點數"), BorderLayout.SOUTH);
+        header.add(Ui.small("調整預算與查看本月種樹進度"), BorderLayout.SOUTH);
         header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
         return header;
     }
@@ -78,25 +87,36 @@ public class SettingsPanel extends RefreshablePanel {
         return card;
     }
 
-    private JPanel buildPointsCard() {
-        JPanel card = Ui.tintedCard(Ui.GREEN_SOFT);
+    private JPanel buildTreeCard() {
+        JPanel card = Ui.card();
         card.setLayout(new BorderLayout(0, 12));
-        card.add(Ui.sectionTitle("記帳成就"), BorderLayout.NORTH);
-        JPanel values = new JPanel(new GridBagLayout());
-        values.setOpaque(false);
+        card.add(Ui.sectionTitle("本月小樹"), BorderLayout.NORTH);
+        card.add(treePanel, BorderLayout.CENTER);
+
+        JPanel details = new JPanel(new GridBagLayout());
+        details.setOpaque(false);
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
-        c.anchor = GridBagConstraints.WEST;
-        points.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
-        points.setForeground(Ui.GREEN_DARK);
-        values.add(points, c);
+        c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        waterText.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        waterText.setForeground(Ui.GREEN_DARK);
+        details.add(waterText, c);
         c.gridy = 1;
-        level.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
-        level.setForeground(Ui.TEXT);
-        values.add(level, c);
-        card.add(values, BorderLayout.CENTER);
-        card.add(Ui.caption("每新增一筆交易會增加 10 點"), BorderLayout.SOUTH);
+        completedText.setForeground(Ui.MUTED);
+        details.add(completedText, c);
+        c.gridy = 2;
+        c.insets = new Insets(10, 0, 0, 0);
+        treeProgress.setStringPainted(false);
+        treeProgress.setForeground(Ui.GREEN);
+        treeProgress.setBackground(new java.awt.Color(231, 231, 221));
+        treeProgress.setBorderPainted(false);
+        details.add(treeProgress, c);
+        c.gridy = 3;
+        c.insets = new Insets(8, 0, 0, 0);
+        details.add(Ui.caption("每新增一筆記帳就是澆水一次；本月達 20 次就完成一棵樹，沒有記錄會顯示枯萎。"), c);
+        card.add(details, BorderLayout.SOUTH);
         return card;
     }
 

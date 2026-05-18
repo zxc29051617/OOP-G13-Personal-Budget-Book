@@ -32,11 +32,15 @@ public class HistoryPanel extends RefreshablePanel {
     }
 
     private JPanel buildHeader() {
-        JPanel header = new JPanel(new BorderLayout(0, 4));
+        JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setOpaque(false);
-        header.add(Ui.appName(), BorderLayout.NORTH);
-        header.add(Ui.title("交易紀錄"), BorderLayout.CENTER);
-        header.add(Ui.small("查看並管理所有收入與支出"), BorderLayout.SOUTH);
+        JPanel text = new JPanel(new BorderLayout(0, 4));
+        text.setOpaque(false);
+        text.add(Ui.appName(), BorderLayout.NORTH);
+        text.add(Ui.title("交易紀錄"), BorderLayout.CENTER);
+        text.add(Ui.small("查看並管理所有收入與支出"), BorderLayout.SOUTH);
+        header.add(text, BorderLayout.WEST);
+        header.add(frame.settingsButton(), BorderLayout.EAST);
         header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
         return header;
     }

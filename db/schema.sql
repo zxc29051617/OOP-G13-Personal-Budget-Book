@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE TABLE IF NOT EXISTS transactions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     date DATE NOT NULL,
+    transaction_time TIME NOT NULL DEFAULT '00:00:00',
     kind VARCHAR(20) NOT NULL,
     category VARCHAR(100) NOT NULL,
     account_id INT NOT NULL,

@@ -8,6 +8,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -19,12 +21,14 @@ import javax.swing.JTextField;
 public class QuickEntryPanel extends RefreshablePanel {
     private static final String[] EXPENSE_CATEGORIES = {"餐飲", "交通", "購物", "娛樂", "生活", "醫療", "其他"};
     private static final String[] INCOME_CATEGORIES = {"薪資", "獎金", "投資", "轉入", "其他"};
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final BudgetBookFrame frame;
     private final JComboBox<String> kind = new JComboBox<>(new String[]{"支出", "收入"});
     private final JComboBox<String> category = new JComboBox<>();
     private final JComboBox<Account> account = new JComboBox<>();
     private final JTextField date = new JTextField(LocalDate.now().toString(), 18);
+    private final JTextField time = new JTextField(LocalTime.now().withSecond(0).withNano(0).format(TIME_FORMAT), 18);
     private final JTextField amount = new JTextField(18);
     private final JTextField note = new JTextField(18);
 
@@ -37,6 +41,7 @@ public class QuickEntryPanel extends RefreshablePanel {
         Ui.styleCombo(category);
         Ui.styleCombo(account);
         Ui.styleInput(date);
+        Ui.styleInput(time);
         Ui.styleInput(amount);
         Ui.styleInput(note);
 
@@ -62,11 +67,15 @@ public class QuickEntryPanel extends RefreshablePanel {
     }
 
     private JPanel buildHeader() {
-        JPanel header = new JPanel(new BorderLayout(0, 4));
+        JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setOpaque(false);
-        header.add(Ui.appName(), BorderLayout.NORTH);
-        header.add(Ui.title("快速記帳"), BorderLayout.CENTER);
-        header.add(Ui.small("輸入金額、分類與備註，一次完成記錄"), BorderLayout.SOUTH);
+        JPanel text = new JPanel(new BorderLayout(0, 4));
+        text.setOpaque(false);
+        text.add(Ui.appName(), BorderLayout.NORTH);
+        text.add(Ui.title("快速記帳"), BorderLayout.CENTER);
+        text.add(Ui.small("新增一筆交易，也替本月小樹澆水一次"), BorderLayout.SOUTH);
+        header.add(text, BorderLayout.WEST);
+        header.add(frame.settingsButton(), BorderLayout.EAST);
         header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
         return header;
     }
@@ -79,7 +88,7 @@ public class QuickEntryPanel extends RefreshablePanel {
         prompt.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 24));
         prompt.setForeground(Ui.TEXT);
         card.add(prompt, BorderLayout.CENTER);
-        card.add(Ui.caption("日期格式請使用 YYYY-MM-DD"), BorderLayout.SOUTH);
+        card.add(Ui.caption("日期 YYYY-MM-DD，時間 HH:mm"), BorderLayout.SOUTH);
         return card;
     }
 
@@ -93,15 +102,16 @@ public class QuickEntryPanel extends RefreshablePanel {
 
         addRow(card, c, 0, "類型", kind);
         addRow(card, c, 1, "日期", date);
-        addRow(card, c, 2, "分類", category);
-        addRow(card, c, 3, "錢包", account);
-        addRow(card, c, 4, "金額", amount);
-        addRow(card, c, 5, "備註", note);
+        addRow(card, c, 2, "時間", time);
+        addRow(card, c, 3, "分類", category);
+        addRow(card, c, 4, "錢包", account);
+        addRow(card, c, 5, "金額", amount);
+        addRow(card, c, 6, "備註", note);
 
-        JButton save = Ui.primaryButton("儲存這筆記帳");
+        JButton save = Ui.primaryButton("儲存並澆水");
         save.addActionListener(e -> submit());
         c.gridx = 0;
-        c.gridy = 12;
+        c.gridy = 14;
         c.gridwidth = 2;
         c.insets = new Insets(14, 0, 0, 0);
         card.add(save, c);
@@ -142,6 +152,7 @@ public class QuickEntryPanel extends RefreshablePanel {
             Transaction.Kind txKind = kind.getSelectedIndex() == 0 ? Transaction.Kind.EXPENSE : Transaction.Kind.INCOME;
             frame.getStore().addTransaction(
                     LocalDate.parse(date.getText().trim()),
+                    LocalTime.parse(time.getText().trim(), TIME_FORMAT),
                     txKind,
                     String.valueOf(category.getSelectedItem()),
                     selectedAccount.getId(),
@@ -150,8 +161,9 @@ public class QuickEntryPanel extends RefreshablePanel {
             amount.setText("");
             note.setText("");
             date.setText(LocalDate.now().toString());
+            time.setText(LocalTime.now().withSecond(0).withNano(0).format(TIME_FORMAT));
             frame.persistAndRefresh();
-            Dialogs.showInfo(this, "已儲存，點數 +10。");
+            Dialogs.showInfo(this, "已完成澆水一次，本月小樹又長大了。");
             frame.showPanel("home");
         } catch (Exception ex) {
             Dialogs.showError(this, "新增記帳失敗：" + ex.getMessage());

@@ -103,12 +103,6 @@ public class Ui {
         return panel;
     }
 
-    public static void pad(Component component) {
-        if (component instanceof JPanel panel) {
-            panel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        }
-    }
-
     public static JButton primaryButton(String text) {
         return new RoundButton(text, GREEN_DARK, Color.WHITE);
     }
@@ -124,8 +118,8 @@ public class Ui {
     public static JButton navButton(String text) {
         JButton button = new RoundButton(text, new Color(0, 0, 0, 0), MUTED);
         button.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
-        button.setPreferredSize(new Dimension(54, 52));
-        button.setMinimumSize(new Dimension(50, 52));
+        button.setPreferredSize(new Dimension(62, 52));
+        button.setMinimumSize(new Dimension(58, 52));
         return button;
     }
 

@@ -56,11 +56,15 @@ public class AnalysisPanel extends RefreshablePanel {
     }
 
     private JPanel buildHeader() {
-        JPanel header = new JPanel(new BorderLayout(0, 4));
+        JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setOpaque(false);
-        header.add(Ui.appName(), BorderLayout.NORTH);
-        header.add(Ui.title("財務分析"), BorderLayout.CENTER);
-        header.add(Ui.small("依分類查看本月支出與收支差額"), BorderLayout.SOUTH);
+        JPanel text = new JPanel(new BorderLayout(0, 4));
+        text.setOpaque(false);
+        text.add(Ui.appName(), BorderLayout.NORTH);
+        text.add(Ui.title("財務分析"), BorderLayout.CENTER);
+        text.add(Ui.small("依分類查看本月支出與收支差額"), BorderLayout.SOUTH);
+        header.add(text, BorderLayout.WEST);
+        header.add(frame.settingsButton(), BorderLayout.EAST);
         header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
         return header;
     }

@@ -47,6 +47,12 @@ public class BudgetBookFrame extends JFrame {
         return stats;
     }
 
+    public JButton settingsButton() {
+        JButton button = Ui.quietButton("設定");
+        button.addActionListener(e -> showPanel("settings"));
+        return button;
+    }
+
     public void persistAndRefresh() {
         try {
             store.save();
@@ -95,7 +101,7 @@ public class BudgetBookFrame extends JFrame {
     }
 
     private JPanel buildBottomNav() {
-        JPanel nav = new JPanel(new GridLayout(1, 6, 4, 0));
+        JPanel nav = new JPanel(new GridLayout(1, 5, 4, 0));
         nav.setBackground(Ui.CARD);
         nav.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(1, 0, 0, 0, Ui.LINE),
@@ -105,7 +111,6 @@ public class BudgetBookFrame extends JFrame {
         addNavButton(nav, "analysis", "分析");
         addNavButton(nav, "wallets", "錢包");
         addNavButton(nav, "history", "紀錄");
-        addNavButton(nav, "settings", "設定");
         return nav;
     }
 

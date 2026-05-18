@@ -17,7 +17,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -77,7 +79,10 @@ public class BudgetBookStore {
 
     public List<Transaction> getTransactions() {
         List<Transaction> copy = new ArrayList<>(transactions);
-        copy.sort(Comparator.comparing(Transaction::getDate).reversed().thenComparing(Transaction::getId).reversed());
+        copy.sort(Comparator.comparing(Transaction::getDate)
+                .thenComparing(Transaction::getTime)
+                .thenComparing(Transaction::getId)
+                .reversed());
         return copy;
     }
 
@@ -105,7 +110,7 @@ public class BudgetBookStore {
     public void deleteAccount(int accountId) {
         boolean used = transactions.stream().anyMatch(t -> t.getAccountId() == accountId);
         if (used) {
-            throw new IllegalArgumentException("This account has transactions and cannot be deleted.");
+            throw new IllegalArgumentException("這個錢包已有交易紀錄，不能刪除。");
         }
 
         String sql = "DELETE FROM accounts WHERE id = ?";
@@ -120,35 +125,30 @@ public class BudgetBookStore {
     }
 
     public Transaction addTransaction(LocalDate date, Transaction.Kind kind, String category, int accountId, double amount, String note) {
+        return addTransaction(date, LocalTime.now().withSecond(0).withNano(0), kind, category, accountId, amount, note);
+    }
+
+    public Transaction addTransaction(LocalDate date, LocalTime time, Transaction.Kind kind, String category, int accountId, double amount, String note) {
         String sql = """
-                INSERT INTO transactions (date, kind, category, account_id, amount, note)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO transactions (date, transaction_time, kind, category, account_id, amount, note)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
+        LocalTime safeTime = time == null ? LocalTime.MIDNIGHT : time;
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            connection.setAutoCommit(false);
-            try {
-                statement.setDate(1, Date.valueOf(date));
-                statement.setString(2, kind.name());
-                statement.setString(3, category);
-                statement.setInt(4, accountId);
-                statement.setDouble(5, amount);
-                statement.setString(6, note);
-                statement.executeUpdate();
+            statement.setDate(1, Date.valueOf(date));
+            statement.setTime(2, Time.valueOf(safeTime));
+            statement.setString(3, kind.name());
+            statement.setString(4, category);
+            statement.setInt(5, accountId);
+            statement.setDouble(6, amount);
+            statement.setString(7, note);
+            statement.executeUpdate();
 
-                int id = generatedId(statement);
-                int updatedPoints = settings.getPoints() + 10;
-                saveSettings(connection, settings.getMonthlyLimit(), updatedPoints);
-                connection.commit();
-
-                settings.setPoints(updatedPoints);
-                Transaction transaction = new Transaction(id, date, kind, category, accountId, amount, note);
-                transactions.add(transaction);
-                return transaction;
-            } catch (SQLException e) {
-                rollbackQuietly(connection);
-                throw e;
-            }
+            int id = generatedId(statement);
+            Transaction transaction = new Transaction(id, date, safeTime, kind, category, accountId, amount, note);
+            transactions.add(transaction);
+            return transaction;
         } catch (SQLException e) {
             throw new IllegalStateException("Unable to add transaction: " + e.getMessage(), e);
         }
@@ -203,6 +203,7 @@ public class BudgetBookStore {
                     CREATE TABLE IF NOT EXISTS transactions (
                         id INT PRIMARY KEY AUTO_INCREMENT,
                         date DATE NOT NULL,
+                        transaction_time TIME NOT NULL DEFAULT '00:00:00',
                         kind VARCHAR(20) NOT NULL,
                         category VARCHAR(100) NOT NULL,
                         account_id INT NOT NULL,
@@ -213,6 +214,7 @@ public class BudgetBookStore {
                             ON DELETE RESTRICT
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                     """);
+            ensureTransactionTimeColumn(connection, statement);
             statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS settings (
                         id INT PRIMARY KEY,
@@ -222,6 +224,14 @@ public class BudgetBookStore {
                     """);
         }
         ensureDefaultSettingsRow();
+    }
+
+    private void ensureTransactionTimeColumn(Connection connection, Statement statement) throws SQLException {
+        try (ResultSet columns = connection.getMetaData().getColumns(connection.getCatalog(), null, "transactions", "transaction_time")) {
+            if (!columns.next()) {
+                statement.executeUpdate("ALTER TABLE transactions ADD COLUMN transaction_time TIME NOT NULL DEFAULT '00:00:00' AFTER date");
+            }
+        }
     }
 
     private void ensureDefaultSettingsRow() throws SQLException {
@@ -264,17 +274,19 @@ public class BudgetBookStore {
     private void loadTransactionsFromDatabase() throws SQLException {
         transactions.clear();
         String sql = """
-                SELECT id, date, kind, category, account_id, amount, note
+                SELECT id, date, transaction_time, kind, category, account_id, amount, note
                 FROM transactions
-                ORDER BY date DESC, id DESC
+                ORDER BY date DESC, transaction_time DESC, id DESC
                 """;
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
+                Time transactionTime = resultSet.getTime("transaction_time");
                 transactions.add(new Transaction(
                         resultSet.getInt("id"),
                         resultSet.getDate("date").toLocalDate(),
+                        transactionTime == null ? LocalTime.MIDNIGHT : transactionTime.toLocalTime(),
                         Transaction.Kind.valueOf(resultSet.getString("kind")),
                         resultSet.getString("category"),
                         resultSet.getInt("account_id"),
@@ -306,14 +318,10 @@ public class BudgetBookStore {
     }
 
     private void saveSettings(Connection connection) throws SQLException {
-        saveSettings(connection, settings.getMonthlyLimit(), settings.getPoints());
-    }
-
-    private void saveSettings(Connection connection, double monthlyLimit, int points) throws SQLException {
         String update = "UPDATE settings SET monthly_limit = ?, points = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(update)) {
-            statement.setDouble(1, monthlyLimit);
-            statement.setInt(2, points);
+            statement.setDouble(1, settings.getMonthlyLimit());
+            statement.setInt(2, settings.getPoints());
             statement.setInt(3, SETTINGS_ID);
             if (statement.executeUpdate() > 0) {
                 return;
@@ -323,8 +331,8 @@ public class BudgetBookStore {
         String insert = "INSERT INTO settings (id, monthly_limit, points) VALUES (?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(insert)) {
             statement.setInt(1, SETTINGS_ID);
-            statement.setDouble(2, monthlyLimit);
-            statement.setInt(3, points);
+            statement.setDouble(2, settings.getMonthlyLimit());
+            statement.setInt(3, settings.getPoints());
             statement.executeUpdate();
         }
     }
@@ -378,8 +386,8 @@ public class BudgetBookStore {
             return;
         }
         String sql = """
-                INSERT INTO transactions (id, date, kind, category, account_id, amount, note)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO transactions (id, date, transaction_time, kind, category, account_id, amount, note)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (BufferedReader reader = Files.newBufferedReader(transactionsFile, StandardCharsets.UTF_8);
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -392,11 +400,12 @@ public class BudgetBookStore {
                 if (row.size() >= 7) {
                     statement.setInt(1, Integer.parseInt(row.get(0)));
                     statement.setDate(2, Date.valueOf(LocalDate.parse(row.get(1))));
-                    statement.setString(3, row.get(2));
-                    statement.setString(4, row.get(3));
-                    statement.setInt(5, Integer.parseInt(row.get(4)));
-                    statement.setDouble(6, Double.parseDouble(row.get(5)));
-                    statement.setString(7, row.get(6));
+                    statement.setTime(3, Time.valueOf(LocalTime.MIDNIGHT));
+                    statement.setString(4, row.get(2));
+                    statement.setString(5, row.get(3));
+                    statement.setInt(6, Integer.parseInt(row.get(4)));
+                    statement.setDouble(7, Double.parseDouble(row.get(5)));
+                    statement.setString(8, row.get(6));
                     statement.addBatch();
                 }
             }

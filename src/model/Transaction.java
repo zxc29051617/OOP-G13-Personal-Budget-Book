@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class Transaction {
     public enum Kind {
@@ -9,6 +10,7 @@ public class Transaction {
 
     private final int id;
     private LocalDate date;
+    private LocalTime time;
     private Kind kind;
     private String category;
     private int accountId;
@@ -16,8 +18,13 @@ public class Transaction {
     private String note;
 
     public Transaction(int id, LocalDate date, Kind kind, String category, int accountId, double amount, String note) {
+        this(id, date, LocalTime.MIDNIGHT, kind, category, accountId, amount, note);
+    }
+
+    public Transaction(int id, LocalDate date, LocalTime time, Kind kind, String category, int accountId, double amount, String note) {
         this.id = id;
         this.date = date;
+        this.time = time == null ? LocalTime.MIDNIGHT : time;
         this.kind = kind;
         this.category = category;
         this.accountId = accountId;
@@ -35,6 +42,14 @@ public class Transaction {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    public LocalTime getTime() {
+        return time;
+    }
+
+    public void setTime(LocalTime time) {
+        this.time = time == null ? LocalTime.MIDNIGHT : time;
     }
 
     public Kind getKind() {

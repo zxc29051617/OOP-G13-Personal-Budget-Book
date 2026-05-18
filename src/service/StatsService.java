@@ -6,10 +6,12 @@ import persistence.BudgetBookStore;
 
 import java.time.YearMonth;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 public class StatsService {
+    public static final int MONTHLY_TREE_GOAL = 20;
+
     private final BudgetBookStore store;
 
     public StatsService(BudgetBookStore store) {
@@ -32,10 +34,51 @@ public class StatsService {
         return sumByKind(month, Transaction.Kind.EXPENSE);
     }
 
+    public int monthlyWaterCount(YearMonth month) {
+        int count = 0;
+        for (Transaction transaction : store.getTransactions()) {
+            if (YearMonth.from(transaction.getDate()).equals(month)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int completedTreeCount() {
+        Map<YearMonth, Integer> countByMonth = new HashMap<>();
+        for (Transaction transaction : store.getTransactions()) {
+            YearMonth month = YearMonth.from(transaction.getDate());
+            countByMonth.put(month, countByMonth.getOrDefault(month, 0) + 1);
+        }
+
+        int completed = 0;
+        for (int count : countByMonth.values()) {
+            if (count >= MONTHLY_TREE_GOAL) {
+                completed++;
+            }
+        }
+        return completed;
+    }
+
+    public String monthlyTreeStatus(YearMonth month) {
+        int waterCount = monthlyWaterCount(month);
+        if (waterCount >= MONTHLY_TREE_GOAL) {
+            return "完成一棵樹";
+        }
+        if (waterCount == 0) {
+            return "枯萎";
+        }
+        return "成長中";
+    }
+
+    public int monthlyTreeProgressPercent(YearMonth month) {
+        int waterCount = monthlyWaterCount(month);
+        return Math.min(100, Math.round(waterCount * 100f / MONTHLY_TREE_GOAL));
+    }
+
     public Map<String, Double> monthlyExpenseByCategory(YearMonth month) {
         Map<String, Double> result = new LinkedHashMap<>();
-        List<Transaction> rows = store.getTransactions();
-        for (Transaction transaction : rows) {
+        for (Transaction transaction : store.getTransactions()) {
             if (transaction.getKind() == Transaction.Kind.EXPENSE && YearMonth.from(transaction.getDate()).equals(month)) {
                 result.put(transaction.getCategory(), result.getOrDefault(transaction.getCategory(), 0.0) + transaction.getAmount());
             }

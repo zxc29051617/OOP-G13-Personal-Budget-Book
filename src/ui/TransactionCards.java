@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -15,6 +16,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class TransactionCards {
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
     private TransactionCards() {
     }
 
@@ -78,7 +81,8 @@ public class TransactionCards {
         JLabel title = new JLabel(transaction.getCategory());
         title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
         title.setForeground(Ui.TEXT);
-        String sub = transaction.getDate() + "  ·  " + (account == null ? "未知帳戶" : account.getName());
+        String sub = transaction.getDate() + " " + transaction.getTime().format(TIME_FORMAT)
+                + "  ·  " + (account == null ? "未知帳戶" : account.getName());
         if (transaction.getNote() != null && !transaction.getNote().isBlank()) {
             sub += "  ·  " + transaction.getNote();
         }
@@ -119,10 +123,8 @@ public class TransactionCards {
     private static JPanel emptyState(String title, String message) {
         JPanel panel = Ui.tintedCard(Ui.SURFACE);
         panel.setLayout(new GridLayout(2, 1, 0, 4));
-        JLabel titleLabel = Ui.sectionTitle(title);
-        JLabel messageLabel = Ui.small(message);
-        panel.add(titleLabel);
-        panel.add(messageLabel);
+        panel.add(Ui.sectionTitle(title));
+        panel.add(Ui.small(message));
         return panel;
     }
 }

@@ -70,11 +70,15 @@ public class WalletPanel extends RefreshablePanel {
     }
 
     private JPanel buildHeader() {
-        JPanel header = new JPanel(new BorderLayout(0, 4));
+        JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setOpaque(false);
-        header.add(Ui.appName(), BorderLayout.NORTH);
-        header.add(Ui.title("錢包管理"), BorderLayout.CENTER);
-        header.add(Ui.small("現金、銀行與數位支付集中管理"), BorderLayout.SOUTH);
+        JPanel text = new JPanel(new BorderLayout(0, 4));
+        text.setOpaque(false);
+        text.add(Ui.appName(), BorderLayout.NORTH);
+        text.add(Ui.title("錢包管理"), BorderLayout.CENTER);
+        text.add(Ui.small("現金、銀行與數位支付集中管理"), BorderLayout.SOUTH);
+        header.add(text, BorderLayout.WEST);
+        header.add(frame.settingsButton(), BorderLayout.EAST);
         header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 86));
         return header;
     }
@@ -113,12 +117,9 @@ public class WalletPanel extends RefreshablePanel {
 
         JPanel text = new JPanel(new GridLayout(3, 1, 0, 2));
         text.setOpaque(false);
-        JLabel nameLabel = Ui.sectionTitle(account.getName());
-        JLabel typeLabel = Ui.caption(account.getType());
-        JLabel initialLabel = Ui.caption("初始金額 " + Money.format(account.getInitialBalance()));
-        text.add(nameLabel);
-        text.add(typeLabel);
-        text.add(initialLabel);
+        text.add(Ui.sectionTitle(account.getName()));
+        text.add(Ui.caption(account.getType()));
+        text.add(Ui.caption("初始金額 " + Money.format(account.getInitialBalance())));
         card.add(text, BorderLayout.CENTER);
 
         JPanel right = new JPanel(new GridLayout(2, 1, 0, 4));
