@@ -69,7 +69,6 @@ PersonalBudgetBook/
 │  └─ README.md       本機 jar 放置說明
 ├─ data/              本機設定與資料，不上傳 GitHub
 ├─ out/               編譯輸出，不上傳 GitHub
-├─ MYSQL_SETUP.md     MySQL 設定說明
 ├─ run.bat            Windows 執行腳本
 └─ README.md
 ```
