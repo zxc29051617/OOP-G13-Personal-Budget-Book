@@ -15,6 +15,7 @@ https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book
 - 依分類統計本月支出
 - 查看全部交易紀錄
 - 設定每月支出預算
+- 簡單查詢助手，可快速回答本月支出、剩餘預算、錢包數、最近交易與種樹狀態
 - 種樹激勵機制：
   - 新增一筆記帳 = 澆水一次
   - 本月澆水 20 次 = 完成一棵樹
@@ -34,6 +35,7 @@ https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book
 | 財務分析 | 顯示本月收入、支出、結餘與支出分類圖表 |
 | 錢包管理 | 管理現金、銀行帳戶、電子支付等錢包 |
 | 交易紀錄 | 查看與刪除所有交易 |
+| 查詢助手 | 點選常用問題或自行輸入問題，查詢目前財務狀態 |
 | 設定 | 設定每月預算並查看種樹進度 |
 
 介面特色：
@@ -94,7 +96,7 @@ MySQL Database
 | app | `BudgetBookApp.java` | 啟動程式、設定 Look and Feel、載入資料 |
 | model | `Account.java`, `Transaction.java`, `BudgetSettings.java` | 定義帳戶、交易與設定資料 |
 | persistence | `BudgetBookStore.java` | 負責連線 MySQL、建立資料表、讀寫資料 |
-| service | `StatsService.java` | 計算總餘額、月收入、月支出、分類支出與種樹進度 |
+| service | `StatsService.java`, `QueryAssistantService.java` | 計算總餘額、月收入、月支出、分類支出、種樹進度與簡單查詢回答 |
 | ui | `HomePanel.java`, `QuickEntryPanel.java`, `AnalysisPanel.java` 等 | Swing 畫面 |
 
 ## 資料庫設計

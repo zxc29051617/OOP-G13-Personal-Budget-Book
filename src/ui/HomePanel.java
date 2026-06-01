@@ -78,14 +78,15 @@ public class HomePanel extends RefreshablePanel {
         text.add(Ui.small("掌握結餘、預算與本月小樹"), BorderLayout.SOUTH);
         header.add(text, BorderLayout.WEST);
 
-        JPanel actions = new JPanel(new GridLayout(2, 1, 0, 8));
+        JPanel actions = new JPanel(new GridLayout(3, 1, 0, 8));
         actions.setOpaque(false);
         actions.add(frame.settingsButton());
+        actions.add(frame.assistantButton());
         JButton quick = Ui.primaryButton("快速記帳");
         quick.addActionListener(e -> frame.showPanel("quick"));
         actions.add(quick);
         header.add(actions, BorderLayout.EAST);
-        header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 102));
+        header.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 146));
         return header;
     }
 

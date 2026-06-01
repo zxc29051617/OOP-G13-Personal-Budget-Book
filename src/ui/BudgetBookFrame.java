@@ -53,6 +53,12 @@ public class BudgetBookFrame extends JFrame {
         return button;
     }
 
+    public JButton assistantButton() {
+        JButton button = Ui.quietButton("助手");
+        button.addActionListener(e -> showPanel("assistant"));
+        return button;
+    }
+
     public void persistAndRefresh() {
         try {
             store.save();
@@ -94,6 +100,7 @@ public class BudgetBookFrame extends JFrame {
 
         addPanel("home", new HomePanel(this));
         addPanel("quick", new QuickEntryPanel(this));
+        addPanel("assistant", new AssistantPanel(this));
         addPanel("analysis", new AnalysisPanel(this));
         addPanel("wallets", new WalletPanel(this));
         addPanel("history", new HistoryPanel(this));
