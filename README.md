@@ -6,8 +6,8 @@
 組員：[b13204013](https://github.com/b13204013)、[NTU-B13204043](https://github.com/NTU-B13204043)、[zxc29051617](https://github.com/zxc29051617)
 
 原始版本是第 13 組在課堂上繳交的作品（Java Swing + MySQL，手機 App 風格的介面），
-書面報告、簡報與介面設計放在 [`docs/course/`](docs/course/)，程式碼可以在 commit
-[`3fff4d0`](https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book/tree/3fff4d0) 查看。
+書面報告、簡報與介面設計放在 [`docs/course/`](docs/course/)，繳交時的程式碼保留在 tag
+[`course-submission`](https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book/tree/course-submission)。
 目前的版本是課程結束後的延伸改版：保留原版的記帳流程與種樹激勵機制，依原報告「限制與未來改進」一節的方向，
 改成分層架構、內建資料庫，並加入預算、定期交易、報表圖表與復原等功能。
 
