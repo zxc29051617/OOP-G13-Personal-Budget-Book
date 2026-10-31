@@ -109,6 +109,10 @@ class WalletAndCategoryServiceTest {
         Fixtures.expense(app, "餐飲", 100, LocalDate.of(2026, 10, 1), "");
         assertThrows(ValidationException.class, () -> app.categories().update(
                 new Category(food.id(), food.name(), CategoryKind.INCOME, food.color(), food.icon())));
+        Category hobby = app.categories().create("手作", CategoryKind.EXPENSE, 0, "");
+        app.budgets().setForCategory(hobby.id(), Money.of(500));
+        assertThrows(ValidationException.class, () -> app.categories().update(
+                new Category(hobby.id(), hobby.name(), CategoryKind.INCOME, hobby.color(), hobby.icon())));
         Category renamed = app.categories().update(food.withName("吃飯").withColor(0x00FF00));
         assertEquals("吃飯", app.categories().get(food.id()).name());
         assertEquals(0x00FF00, renamed.color());

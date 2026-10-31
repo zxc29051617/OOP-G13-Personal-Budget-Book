@@ -63,6 +63,9 @@ public final class CategoryService {
             throw new ValidationException("分類類型", "「" + existing.name() + "」已經有交易，不能改成"
                     + category.kind().displayName() + "分類。");
         }
+        if (existing.kind() != category.kind() && storage.budgets().findByCategoryId(category.id()).isPresent()) {
+            throw new ValidationException("分類類型", "「" + existing.name() + "」有設定預算，請先取消預算再改類型。");
+        }
         ensureUniqueName(category);
         return commands.execute(new SaveCommand<>(storage.categories(), category,
                 "修改分類「" + category.name() + "」", Topic.CATEGORIES, Topic.TRANSACTIONS, Topic.BUDGETS))
