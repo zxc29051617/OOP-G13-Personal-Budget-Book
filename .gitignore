@@ -1,4 +1,17 @@
+# 建置輸出
+target/
 out/
+
+# 本機資料與資料庫
 data/
+*.db
+
+# 舊版手動放置的 jar（現在由 Maven 管理）
 lib/*.jar
+
+# 編輯器
+.idea/
+*.iml
+.vscode/
+.DS_Store
 ~$*.docx
