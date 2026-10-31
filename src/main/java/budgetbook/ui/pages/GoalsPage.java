@@ -93,7 +93,8 @@ public final class GoalsPage extends Page {
         Card card = new Card(new BorderLayout(0, 10));
         card.setPreferredSize(new Dimension(320, 210));
         JLabel name = new ThemedLabel(goal.name(), Fonts.of(Font.BOLD, 1.1f), Palette::text);
-        name.setIcon(new BadgeIcon(goal.name().substring(0, 1), Palette.of(goal.color()), 32));
+        name.setIcon(new BadgeIcon(goal.name().substring(0, goal.name().offsetByCodePoints(0, 1)),
+                Palette.of(goal.color()), 32));
         name.setIconTextGap(10);
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);

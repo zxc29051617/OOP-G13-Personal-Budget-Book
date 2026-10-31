@@ -107,7 +107,7 @@ public final class ForestPage extends Page {
         MonthlyTree tree = ui.app().trees().currentTree();
         Forest all = ui.app().trees().forest(24);
         bigTree.setStage(tree.stage());
-        stage.setText(tree.stage().displayName() + "　" + tree.stage().statusText());
+        stage.setText(tree.stage().label());
         watering.setText("本月已澆水 " + tree.records() + " / " + tree.goal() + " 次");
         meter.setRatio(tree.progress());
         hint.setText(tree.isCompleted() ? "本月的樹已經長成大樹了！繼續記帳可以維持連續紀錄。"

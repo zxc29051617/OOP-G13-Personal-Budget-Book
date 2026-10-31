@@ -19,7 +19,8 @@ public final class Theme {
         if (!dark) {
             extras.put("@background", "#F4F5F1");
         }
-        extras.put("defaultFont", "14 \"" + Fonts.family() + "\"");
+        // 比系統預設字級大 1，中文字比較清楚；以相對大小設定才會保留系統的縮放比例
+        extras.put("defaultFont", "+1 \"" + Fonts.family() + "\"");
         // Windows 上 semibold 預設是 Segoe UI Semibold，沒有中文字，改成同字型的粗體
         extras.put("semibold.font", "bold");
         FlatLaf.setGlobalExtraDefaults(extras);

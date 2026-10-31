@@ -121,7 +121,10 @@ public final class Fields {
         }
     }
 
-    /** 金額欄位：可以輸入算式，例如 120+45，離開欄位時自動算出結果。 */
+    /**
+     * 金額欄位：可以輸入算式，例如 120+45，離開欄位時自動算出結果。
+     * 不加 ActionListener，讓 Enter 直接觸發對話框的「儲存」。
+     */
     public static final class AmountField extends JTextField {
         public AmountField(Money initial) {
             super(initial == null ? "" : initial.toPlainString(), 10);
@@ -133,7 +136,6 @@ public final class Fields {
                     evaluateQuietly();
                 }
             });
-            addActionListener(e -> evaluateQuietly());
         }
 
         public void setAmount(Money amount) {

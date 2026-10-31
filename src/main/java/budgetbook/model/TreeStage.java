@@ -39,6 +39,11 @@ public enum TreeStage {
         return ratio < 0.75 ? SAPLING : YOUNG_TREE;
     }
 
+    /** 階段加上原版的狀態，例如「小樹（成長中）」；枯萎只顯示一次。 */
+    public String label() {
+        return this == WITHERED ? displayName : displayName + "（" + statusText() + "）";
+    }
+
     /** 原版的三種狀態文字：枯萎、成長中、完成一棵樹。 */
     public String statusText() {
         return switch (this) {

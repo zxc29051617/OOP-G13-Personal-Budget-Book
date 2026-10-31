@@ -196,8 +196,7 @@ final class Answers {
         MonthlyTree tree = s.trees().currentTree();
         Forest forest = s.trees().forest(24);
         StringBuilder text = new StringBuilder("本月已澆水 ").append(tree.records()).append(" / ").append(tree.goal())
-                .append(" 次，小樹狀態：").append(tree.stage().displayName()).append("（")
-                .append(tree.stage().statusText()).append("）");
+                .append(" 次，小樹狀態：").append(tree.stage().label());
         text.append(tree.isCompleted() ? "，本月的樹已經完成！" : "，再記 " + tree.remaining() + " 筆就完成一棵樹。");
         text.append("\n目前連續記帳 ").append(forest.currentStreak()).append(" 天，最長紀錄 ")
                 .append(forest.longestStreak()).append(" 天；森林裡已有 ").append(forest.completedCount())

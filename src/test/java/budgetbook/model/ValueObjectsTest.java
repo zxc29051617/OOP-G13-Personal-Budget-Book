@@ -34,6 +34,9 @@ class ValueObjectsTest {
         assertEquals(TreeStage.YOUNG_TREE, TreeStage.of(19, 20));
         assertEquals(TreeStage.FULL_TREE, TreeStage.of(20, 20));
         assertEquals("成長中", TreeStage.SAPLING.statusText());
+        assertEquals("幼苗（成長中）", TreeStage.SAPLING.label());
+        assertEquals("枯萎", TreeStage.WITHERED.label());
+        assertEquals("大樹（完成一棵樹）", TreeStage.FULL_TREE.label());
         MonthlyTree tree = new MonthlyTree(YearMonth.of(2026, 10), 15, 20);
         assertEquals(5, tree.remaining());
         assertFalse(tree.isCompleted());

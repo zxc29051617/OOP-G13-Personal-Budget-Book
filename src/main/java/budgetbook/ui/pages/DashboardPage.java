@@ -62,7 +62,7 @@ public final class DashboardPage extends Page {
     private final ChartView donut = new ChartView(250);
     private final ChartView bars = new ChartView(220);
     private final JPanel budgets = column();
-    private final TreeView tree = new TreeView(120);
+    private final TreeView tree = new TreeView(108);
     private final JLabel treeTitle = Widgets.heading("");
     private final JLabel treeText = Widgets.muted("");
     private final JLabel streakText = Widgets.muted("");
@@ -132,8 +132,16 @@ public final class DashboardPage extends Page {
         JPanel row = new JPanel(new BorderLayout(14, 0));
         row.setOpaque(false);
         row.add(main, BorderLayout.CENTER);
-        side.setPreferredSize(new Dimension(SIDE_WIDTH, side.getPreferredSize().height));
-        row.add(side, BorderLayout.EAST);
+        // 右欄固定寬度，高度隨內容變化，資料變多時整列一起變高而不會被截掉
+        JPanel fixedWidth = new JPanel(new BorderLayout()) {
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(SIDE_WIDTH, super.getPreferredSize().height);
+            }
+        };
+        fixedWidth.setOpaque(false);
+        fixedWidth.add(side, BorderLayout.CENTER);
+        row.add(fixedWidth, BorderLayout.EAST);
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         return row;
     }
@@ -254,11 +262,11 @@ public final class DashboardPage extends Page {
         MonthlyTree current = app.trees().currentTree();
         Forest forest = app.trees().forest(24);
         tree.setStage(current.stage());
-        treeTitle.setText(current.stage().displayName() + "（" + current.stage().statusText() + "）");
-        treeText.setText("本月澆水 " + current.records() + " / " + current.goal() + " 次"
-                + (current.isCompleted() ? "，已經完成！" : "，再 " + current.remaining() + " 次完成"));
+        treeTitle.setText(current.stage().label());
+        treeText.setText("已澆水 " + current.records() + " / " + current.goal() + " 次"
+                + (current.isCompleted() ? "" : "，還差 " + current.remaining() + " 次"));
         treeMeter.setRatio(current.progress());
-        streakText.setText("連續記帳 " + forest.currentStreak() + " 天 · 森林已有 " + forest.completedCount() + " 棵樹");
+        streakText.setText("連續記帳 " + forest.currentStreak() + " 天 · 森林 " + forest.completedCount() + " 棵");
     }
 
     private void fillRecent(AppContext app) {
