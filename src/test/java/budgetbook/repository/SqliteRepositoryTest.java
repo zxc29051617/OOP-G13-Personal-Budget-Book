@@ -163,6 +163,13 @@ class SqliteRepositoryTest {
     }
 
     @Test
+    void emptyDatabaseHasNoEarliestDate() {
+        assertTrue(storage.transactions().earliestDate().isEmpty());
+        assertTrue(storage.transactions().netChangeByWallet(null).isEmpty());
+        assertTrue(storage.transactions().recentNotes(5).isEmpty());
+    }
+
+    @Test
     void helperQueries() {
         expense(LocalDate.of(2026, 10, 3), 50, "咖啡");
         expense(LocalDate.of(2026, 9, 3), 50, "咖啡");

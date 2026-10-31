@@ -124,7 +124,8 @@ public final class JdbcSession implements AutoCloseable {
 
     public <T> Optional<T> queryOne(String sql, RowMapper<T> mapper, Object... params) {
         List<T> rows = query(sql, mapper, params);
-        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+        // 聚合查詢（例如空資料表的 MIN）會回傳一列 NULL
+        return rows.isEmpty() ? Optional.empty() : Optional.ofNullable(rows.get(0));
     }
 
     public long queryLong(String sql, Object... params) {

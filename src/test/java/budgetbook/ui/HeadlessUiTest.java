@@ -68,6 +68,21 @@ class HeadlessUiTest {
     }
 
     @Test
+    void freshInstallWithoutTransactionsRenders() throws Exception {
+        onEdt(() -> {
+            try (AppContext fresh = Fixtures.app()) {
+                AppShell shell = new AppShell(fresh);
+                for (Page page : shell.pages()) {
+                    shell.show(page.id());
+                    BufferedImage image = OffscreenRenderer.render(shell, 1200, 800);
+                    assertTrue(OffscreenRenderer.countDistinctColors(image) > 10, page.id());
+                }
+                shell.dispose();
+            }
+        });
+    }
+
+    @Test
     void pagesRefreshWhenDataChanges() throws Exception {
         onEdt(() -> {
             AppShell shell = new AppShell(app);
