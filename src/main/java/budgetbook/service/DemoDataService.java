@@ -70,6 +70,14 @@ public final class DemoDataService {
         bus.publish(DataChangedEvent.everything());
     }
 
+    /** 清除所有記帳資料，回到第一次啟動時的預設分類與錢包。無法復原。 */
+    public void resetToStarterData() {
+        storage.inTransaction(storage::clearAllData);
+        commands.clearHistory();
+        ensureStarterData();
+        bus.publish(DataChangedEvent.everything());
+    }
+
     static void createDefaultCategories(Storage storage) {
         for (Object[] row : EXPENSE_CATEGORIES) {
             storage.categories().save(Category.create((String) row[0], CategoryKind.EXPENSE, (Integer) row[1],

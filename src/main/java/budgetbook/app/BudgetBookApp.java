@@ -1,5 +1,8 @@
 package budgetbook.app;
 
+import budgetbook.repository.StorageConfig;
+import budgetbook.ui.BudgetBookUi;
+
 import java.awt.GraphicsEnvironment;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,7 +33,8 @@ public final class BudgetBookApp {
             System.err.println("找不到圖形介面環境。沒有螢幕時可以使用 --smoke-test 檢查程式。");
             System.exit(2);
         }
-        System.out.println("UI not ready yet: " + config);
+        BudgetBookUi.launch(config.storage(), StorageConfig.sqlite(config.dataDir().resolve("budgetbook.db")),
+                config.demo());
     }
 
     private static void runSmokeTest() {

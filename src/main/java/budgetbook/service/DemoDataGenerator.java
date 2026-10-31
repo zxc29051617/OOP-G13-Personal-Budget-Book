@@ -3,6 +3,7 @@ package budgetbook.service;
 import budgetbook.model.Budget;
 import budgetbook.model.Category;
 import budgetbook.model.CategoryKind;
+import budgetbook.model.DateRange;
 import budgetbook.model.Frequency;
 import budgetbook.model.Money;
 import budgetbook.model.RecurringRule;
@@ -77,15 +78,15 @@ final class DemoDataGenerator {
                     .put(category.name(), category.id());
         }
         wallet("現金", WalletType.CASH, 2_000, 0x4C9A62);
-        wallet("薪轉帳戶", WalletType.BANK, 32_000, 0x457B9D);
+        wallet("薪轉帳戶", WalletType.BANK, 12_000, 0x457B9D);
         wallet("行動支付", WalletType.E_PAYMENT, 800, 0xF4A261);
         wallet("信用卡", WalletType.CREDIT_CARD, 0, 0xD16BA5);
         wallet("儲蓄帳戶", WalletType.BANK, 85_000, 0x2A9D8F);
 
         YearMonth firstMonth = YearMonth.from(today).minusMonths(5);
         dailyLife(firstMonth);
-        monthlyExtras(firstMonth);
         recurringRules(firstMonth);
+        monthlyExtras(firstMonth);
         budgets();
         goals();
     }
@@ -112,8 +113,15 @@ final class DemoDataGenerator {
         for (int i = 0; i < 6; i++) {
             YearMonth month = firstMonth.plusMonths(i);
             transfer(month.atDay(3), "薪轉帳戶", "現金", 3_000, "提款");
-            transfer(month.atDay(10), "薪轉帳戶", "行動支付", 1_500, "儲值");
-            transfer(month.atDay(24), "薪轉帳戶", "信用卡", 3_000 + 250L * i, "繳信用卡費");
+            transfer(month.atDay(2), "薪轉帳戶", "行動支付", 2_000, "儲值");
+            transfer(month.atDay(16), "薪轉帳戶", "行動支付", 1_500, "儲值");
+            if (i > 0) {
+                // 每月 24 日繳清上個月的信用卡帳單
+                long bill = cardSpending(month.minusMonths(1));
+                if (bill > 0) {
+                    transfer(month.atDay(24), "薪轉帳戶", "信用卡", bill, "繳信用卡費");
+                }
+            }
         }
         income("獎金", firstMonth.plusMonths(1).atDay(28), 6_000, "績效獎金");
         income("打工", firstMonth.plusMonths(3).atDay(9), 1_600, "家教");
@@ -125,12 +133,20 @@ final class DemoDataGenerator {
         expense("購物", firstMonth.plusMonths(5).atDay(7), LocalTime.of(21, 40), 1_990, "信用卡", "藍牙耳機");
     }
 
+    private long cardSpending(YearMonth month) {
+        long card = wallets.get("信用卡");
+        return storage.transactions().findBetween(DateRange.ofMonth(month)).stream()
+                .filter(t -> t.isExpense() && t.walletId() == card)
+                .mapToLong(t -> t.amount().toBigDecimal().longValue())
+                .sum();
+    }
+
     private void recurringRules(YearMonth firstMonth) {
         rule("薪資", TransactionType.INCOME, 42_000, "薪資", "薪轉帳戶", null, firstMonth.atDay(5), Frequency.MONTHLY);
         rule("房租", TransactionType.EXPENSE, 9_500, "居住", "薪轉帳戶", null, firstMonth.atDay(1), Frequency.MONTHLY);
         rule("手機月租", TransactionType.EXPENSE, 499, "生活", "信用卡", null, firstMonth.atDay(12), Frequency.MONTHLY);
         rule("音樂串流", TransactionType.EXPENSE, 149, "娛樂", "信用卡", null, firstMonth.atDay(18), Frequency.MONTHLY);
-        rule("每月存款", TransactionType.TRANSFER, 5_000, null, "薪轉帳戶", "儲蓄帳戶", firstMonth.atDay(6),
+        rule("每月存款", TransactionType.TRANSFER, 12_000, null, "薪轉帳戶", "儲蓄帳戶", firstMonth.atDay(6),
                 Frequency.MONTHLY);
         rule("年繳保險", TransactionType.EXPENSE, 12_800, "生活", "薪轉帳戶", null, today.plusDays(20),
                 Frequency.YEARLY);

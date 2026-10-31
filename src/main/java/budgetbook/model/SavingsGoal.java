@@ -67,7 +67,7 @@ public record SavingsGoal(long id, String name, Money target, Money saved, Local
         if (isReached()) {
             return Optional.of(Money.ZERO);
         }
-        return monthsLeft(today).map(months -> remaining().dividedBy(months));
+        return monthsLeft(today).map(months -> remaining().dividedBy(months).ceilToDollar());
     }
 
     public SavingsGoal withId(long newId) {

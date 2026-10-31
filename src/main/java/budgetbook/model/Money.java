@@ -118,6 +118,11 @@ public final class Money implements Comparable<Money> {
         return new Money(value.setScale(0, RoundingMode.HALF_UP));
     }
 
+    /** 無條件進位到整數元，例如每月需要存的錢。 */
+    public Money ceilToDollar() {
+        return new Money(value.setScale(0, RoundingMode.CEILING));
+    }
+
     public Money negate() {
         return new Money(value.negate());
     }
