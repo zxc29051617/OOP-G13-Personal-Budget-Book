@@ -151,6 +151,8 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.4.2</version>
                 <configuration>
+                    <!-- Rebuild the plain jar every time so a repeated package/verify never shades the shaded jar again. -->
+                    <forceCreation>true</forceCreation>
                     <archive>
                         <manifest>
                             <mainClass>${main.class}</mainClass>
