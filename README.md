@@ -1,10 +1,11 @@
 # Personal Budget Book 個人記帳本
 
-第 13 組期末專題：一個以 Java Swing 製作的桌面版個人記帳 App。
+臺大 114-2 物件導向程式設計課程第 13 組的期末專題：一個以 Java Swing 製作的桌面版個人記帳 App。
 專案提供快速記帳、錢包管理、收支分析、每月預算與種樹激勵機制，並使用 MySQL 儲存資料。
 
-GitHub Repository:
-https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book
+- 書面報告：[`物件導向程式設計課程專題書面報告_最終版.pdf`](物件導向程式設計課程專題書面報告_最終版.pdf)
+- 簡報：[`自選題_G13.pptx`](自選題_G13.pptx)
+- 介面設計：[`介面設計_自選題_G13.pdf`](介面設計_自選題_G13.pdf)
 
 ## 專案功能
 
@@ -68,9 +69,9 @@ PersonalBudgetBook/
 ├─ db/
 │  └─ schema.sql      MySQL 資料表設計
 ├─ lib/
-│  └─ README.md       本機 jar 放置說明
-├─ data/              本機設定與資料，不上傳 GitHub
-├─ out/               編譯輸出，不上傳 GitHub
+│  └─ README.md       需要的 jar 說明
+├─ data/              本機設定（例如資料庫密碼）
+├─ out/               編譯輸出
 ├─ run.bat            Windows 執行腳本
 └─ README.md
 ```
@@ -169,7 +170,7 @@ lib/mysql-connector-j-*.jar
 lib/flatlaf-*.jar
 ```
 
-注意：`lib/*.jar` 不會上傳到 GitHub，因此下載專案後需要自行放入。
+jar 檔不在 repository 中，需要自行下載後放入 `lib/`。
 
 ## MySQL 設定
 
@@ -208,10 +209,9 @@ password=你的MySQL密碼
 
 ## 執行方式
 
-在 PowerShell 進入專案資料夾：
+在專案資料夾執行：
 
 ```powershell
-cd C:\Users\user\Desktop\PersonalBudgetBook
 .\run.bat
 ```
 
@@ -249,13 +249,3 @@ WARNING: A restricted method in java.lang.System has been called
 ```
 
 這是 FlatLaf 在新版 Java 下的相容性提醒，不影響目前程式執行。
-
-## GitHub 繳交提醒
-
-繳交前請確認：
-
-- GitHub Repository 已設為 Public
-- PPT 或 Report 內有附 GitHub 連結
-- 使用無痕視窗測試連結能正常打開
-- 不要上傳 `data/database.properties`，避免密碼外洩
-- 不要上傳 `out/` 與大型 jar 檔

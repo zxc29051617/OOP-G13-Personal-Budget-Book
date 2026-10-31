@@ -14,4 +14,4 @@ lib/flatlaf-*.jar
 - `mysql-connector-j-*.jar`：Java 連接 MySQL 使用。
 - `flatlaf-*.jar`：讓 Swing 介面使用現代化 Look and Feel。
 
-這個資料夾裡的 jar 檔已經被 Git 忽略，所以換電腦時要重新放一次。
+jar 檔不在 repository 中，需要自行下載後放進這個資料夾。
