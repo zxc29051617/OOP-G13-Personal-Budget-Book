@@ -75,7 +75,8 @@ public final class Charts {
     public static CategoryChart incomeExpenseBars(List<PeriodTotals> totals) {
         CategoryChart chart = new CategoryChartBuilder().width(480).height(260).build();
         axes(chart.getStyler());
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
+        chart.getStyler().setLegendPosition(Styler.LegendPosition.OutsideS);
+        chart.getStyler().setLegendLayout(Styler.LegendLayout.Horizontal);
         chart.getStyler().setAvailableSpaceFill(0.62);
         List<String> labels = totals.stream().map(PeriodTotals::label).toList();
         chart.addSeries("收入", labels, totals.stream().map(t -> t.income().toDouble()).toList())
