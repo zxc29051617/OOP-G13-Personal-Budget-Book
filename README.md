@@ -1,251 +1,173 @@
 # Personal Budget Book 個人記帳本
 
-臺大 114-2 物件導向程式設計課程第 13 組的期末專題：一個以 Java Swing 製作的桌面版個人記帳 App。
-專案提供快速記帳、錢包管理、收支分析、每月預算與種樹激勵機制，並使用 MySQL 儲存資料。
+臺大 114-2 物件導向程式語言（黃乾綱老師）課程第 13 組的期末專題：用 Java Swing 寫的桌面記帳程式。
+同一組的另一個專題是 [OOP-G13-Library-System](https://github.com/zxc29051617/OOP-G13-Library-System)。
 
-- 書面報告：[`物件導向程式設計課程專題書面報告_最終版.pdf`](物件導向程式設計課程專題書面報告_最終版.pdf)
-- 簡報：[`自選題_G13.pptx`](自選題_G13.pptx)
-- 介面設計：[`介面設計_自選題_G13.pdf`](介面設計_自選題_G13.pdf)
+組員：[b13204013](https://github.com/b13204013)、[NTU-B13204043](https://github.com/NTU-B13204043)、[zxc29051617](https://github.com/zxc29051617)
 
-## 專案功能
+原始版本是第 13 組在課堂上繳交的作品（Java Swing + MySQL，手機 App 風格的介面），
+書面報告、簡報與介面設計放在 [`docs/course/`](docs/course/)，程式碼可以在 commit
+[`3fff4d0`](https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book/tree/3fff4d0) 查看。
+目前的版本是課程結束後的延伸改版：保留原版的記帳流程與種樹激勵機制，依原報告「限制與未來改進」一節的方向，
+改成分層架構、內建資料庫，並加入預算、定期交易、報表圖表與復原等功能。
 
-- 快速新增收入 / 支出紀錄
-- 支援日期與時間欄位
-- 管理多個錢包，例如現金、銀行帳戶、電子支付
-- 顯示總餘額、本月收入、本月支出與預算使用率
-- 依分類統計本月支出
-- 查看全部交易紀錄
-- 設定每月支出預算
-- 簡單查詢助手，可快速回答本月支出、剩餘預算、錢包數、最近交易與種樹狀態
-- 種樹激勵機制：
-  - 新增一筆記帳 = 澆水一次
-  - 本月澆水 20 次 = 完成一棵樹
-  - 本月 0 次記帳 = 小樹枯萎
-  - 1 到 19 次 = 成長中
+![總覽](docs/images/dashboard.png)
 
-## 介面設計
+## 功能
 
-本專案參考手機 Finance App 的操作方式，並將其實作為 Java Swing 桌面應用程式。
+- 總覽：總資產、本月收支與結餘、支出分類甜甜圈圖、近 6 個月收支、預算進度、本月小樹、最近交易、即將到來的定期交易與儲蓄目標
+- 交易：收入、支出與錢包之間的轉帳；依關鍵字、期間、類型、分類、錢包篩選，點欄位標題排序；編輯、刪除、複製到今天
+- 快速輸入：金額欄可以輸入算式（`120+45`）、備註自動完成，並依過去相同備註推薦分類
+- 錢包：現金、銀行帳戶、電子支付、信用卡等，餘額由交易即時計算；可封存不再使用的錢包；近 90 天總資產趨勢
+- 分類：自訂名稱、顏色與圖示文字（中文字、符號或 emoji），可以把一個分類合併到另一個
+- 預算：每月總預算與各分類預算，80% 以上提醒、超過 100% 警告，並依目前花費速度預估月底支出
+- 定期交易：房租、薪資、訂閱等，每天／每週／每月／每年；啟動時自動補入帳，也可以提前入帳或略過一次
+- 儲蓄目標：目標金額與日期、存入與取出、計算每月需要存多少
+- 報表：月報與年報（收支摘要、與上期比較、分類占比、每日或每月收支、資產趨勢），可匯出 CSV 或 HTML
+- CSV 匯入與匯出：UTF-8（Excel 可直接開啟），匯入時自動建立缺少的錢包與分類並略過重複的交易
+- 種樹與森林：每記一筆帳就是替本月小樹澆一次水，每月 20 次長成大樹、0 次枯萎；過去每個月的樹排成森林，並記錄連續記帳天數
+- 查詢助手：用中文問「上個月餐飲花多少」「預算還剩多少」，以規則判斷問題並從自己的資料算出答案，不連線到外部服務
+- 新增、修改、刪除都可以復原與重做（Ctrl+Z／Ctrl+Y），淺色與深色主題，完整的鍵盤快捷鍵，繁體中文介面
+- 資料預設存在內建的 SQLite，不需要安裝資料庫；也可以改用 MySQL
 
-主要介面包含：
+## 畫面
 
-| 頁面 | 說明 |
+| 交易紀錄 | 預算 |
 |---|---|
-| 首頁 | 顯示總餘額、本月收入、本月支出、預算使用率、種樹進度與最近交易 |
-| 快速記帳 | 輸入類型、日期、時間、分類、錢包、金額與備註 |
-| 財務分析 | 顯示本月收入、支出、結餘與支出分類圖表 |
-| 錢包管理 | 管理現金、銀行帳戶、電子支付等錢包 |
-| 交易紀錄 | 查看與刪除所有交易 |
-| 查詢助手 | 點選常用問題或自行輸入問題，查詢目前財務狀態 |
-| 設定 | 設定每月預算並查看種樹進度 |
+| ![交易](docs/images/transactions.png) | ![預算](docs/images/budgets.png) |
+| 報表 | 我的森林 |
+| ![報表](docs/images/reports.png) | ![森林](docs/images/forest.png) |
+| 查詢助手 | 深色模式 |
+| ![助手](docs/images/assistant.png) | ![深色模式](docs/images/dashboard-dark.png) |
 
-介面特色：
+其他頁面（錢包、分類、定期交易、儲蓄目標、設定、交易輸入視窗）的截圖在 [`docs/images/`](docs/images/)。
 
-- App 風格底部導覽列
-- 右上角設定入口
-- 圓角卡片式資訊區塊
-- 淺色系背景與綠色主視覺
-- 使用 FlatLaf 改善 Swing 預設外觀
+## 與原版的差異
 
-## 使用技術
-
-- Java 25
-- Java Swing
-- MySQL 8.0
-- JDBC
-- MySQL Connector/J
-- FlatLaf
+| 項目 | 原版（課堂繳交） | 延伸版 |
+|---|---|---|
+| 金額 | `double` | `Money` 值物件（`BigDecimal`），資料庫以「分」為單位的整數保存 |
+| 資料庫 | 需要先安裝並啟動 MySQL | 內建 SQLite；MySQL 改為選用；schema 版本管理 |
+| 分類 | 程式內固定的陣列 | 資料表儲存，可自訂顏色與圖示、合併 |
+| 刪除 | 無法復原 | 新增、修改、刪除都可以復原與重做 |
+| 分析 | 本月分類長條圖 | 甜甜圈圖、月／年收支、資產趨勢、月報與年報匯出 |
+| 預算 | 每月總預算 | 總預算加上分類預算、超支提醒與月底預估 |
+| 建置 | 手動下載 jar、用 `javac` 編譯 | Maven 打包成單一 jar、Maven Wrapper、GitHub Actions |
 
 ## 專案結構
 
 ```text
-PersonalBudgetBook/
-├─ src/
-│  ├─ app/            程式進入點
-│  ├─ model/          資料模型
-│  ├─ persistence/    MySQL 資料存取層
-│  ├─ service/        統計與商業邏輯
-│  └─ ui/             Swing 使用者介面
-├─ db/
-│  └─ schema.sql      MySQL 資料表設計
-├─ lib/
-│  └─ README.md       需要的 jar 說明
-├─ data/              本機設定（例如資料庫密碼）
-├─ out/               編譯輸出
-├─ run.bat            Windows 執行腳本
-└─ README.md
+.
+├── src/main/java/budgetbook/
+│   ├── app/                  # 程式進入點、命令列參數、smoke test
+│   ├── model/                # 不可變的資料類別：Money、Transaction、Budget……
+│   ├── exception/            # 自訂例外（中文錯誤訊息）
+│   ├── repository/           # Repository 介面、資料庫設定與 StorageFactory
+│   │   └── jdbc/             # SQLite／MySQL 共用的 JDBC 實作與 schema 升級
+│   ├── event/                # 事件匯流排（Observer）
+│   ├── command/              # 可以復原的指令（Command）
+│   ├── service/              # 商業邏輯：錢包、預算、定期交易、統計、種樹……
+│   │   ├── report/           # 月報、年報與匯出格式（Strategy）
+│   │   ├── io/               # CSV 匯入匯出
+│   │   └── assistant/        # 規則式查詢助手（Chain of Responsibility）
+│   └── ui/                   # Swing 介面（只呼叫 service，不含商業邏輯）
+│       ├── pages/            # 總覽、交易、錢包、預算……各頁面
+│       ├── forms/            # 新增與編輯的表單
+│       ├── components/       # 卡片、圖表、進度條、小樹等元件
+│       └── theme/            # FlatLaf 主題、顏色與字型
+├── src/main/resources/db/    # 各版本的建表 SQL（sqlite、mysql）
+├── src/test/java/budgetbook/ # JUnit 5 測試
+├── docs/
+│   ├── architecture.md       # 架構與 UML 類別圖
+│   ├── design-patterns.md    # 使用的設計模式與位置
+│   ├── user-guide.md         # 使用說明
+│   ├── images/               # 畫面截圖
+│   └── course/               # 原版課堂繳交的書面報告、簡報、介面設計與 MySQL schema
+├── .github/workflows/ci.yml  # GitHub Actions：建置、測試與 smoke test
+├── pom.xml                   # Maven 設定（Java 21、打包成單一 jar）
+├── mvnw、mvnw.cmd            # Maven Wrapper，只有 Java 也能建置
+├── run.sh、run.bat           # 啟動腳本
+└── THIRD_PARTY_NOTICES.md    # 第三方函式庫與授權
 ```
 
-## 程式架構
-
-本專案採用簡單分層架構：
-
-```text
-UI Panel
-  ↓
-BudgetBookFrame
-  ↓
-StatsService / BudgetBookStore
-  ↓
-MySQL Database
-```
-
-各層說明：
-
-| 層級 | 主要檔案 | 說明 |
-|---|---|---|
-| app | `BudgetBookApp.java` | 啟動程式、設定 Look and Feel、載入資料 |
-| model | `Account.java`, `Transaction.java`, `BudgetSettings.java` | 定義帳戶、交易與設定資料 |
-| persistence | `BudgetBookStore.java` | 負責連線 MySQL、建立資料表、讀寫資料 |
-| service | `StatsService.java`, `QueryAssistantService.java` | 計算總餘額、月收入、月支出、分類支出、種樹進度與簡單查詢回答 |
-| ui | `HomePanel.java`, `QuickEntryPanel.java`, `AnalysisPanel.java` 等 | Swing 畫面 |
-
-## 資料庫設計
-
-本專案使用 MySQL，資料庫名稱預設為：
-
-```text
-personal_budget_book
-```
-
-主要資料表：
-
-### accounts
-
-儲存錢包資料。
-
-| 欄位 | 說明 |
-|---|---|
-| id | 錢包 ID |
-| name | 錢包名稱 |
-| type | 錢包類型 |
-| initial_balance | 初始金額 |
-
-### transactions
-
-儲存收入與支出紀錄。
-
-| 欄位 | 說明 |
-|---|---|
-| id | 交易 ID |
-| date | 交易日期 |
-| transaction_time | 交易時間 |
-| kind | `INCOME` 或 `EXPENSE` |
-| category | 分類 |
-| account_id | 對應錢包 ID |
-| amount | 金額 |
-| note | 備註 |
-
-### settings
-
-儲存系統設定。
-
-| 欄位 | 說明 |
-|---|---|
-| id | 設定 ID |
-| monthly_limit | 每月支出預算 |
-| points | 保留欄位 |
-
-關聯：
-
-```text
-accounts 1 ---- N transactions
-```
+架構、類別圖與設計模式的說明在 [`docs/architecture.md`](docs/architecture.md) 與
+[`docs/design-patterns.md`](docs/design-patterns.md)，操作方式在 [`docs/user-guide.md`](docs/user-guide.md)。
 
 ## 執行環境
 
-建議環境：
-
-```text
-Windows 10 / 11
-Java 25
-MySQL Server 8.0
-PowerShell
-```
-
-本專案需要下列 jar 放在 `lib/`：
-
-```text
-lib/mysql-connector-j-*.jar
-lib/flatlaf-*.jar
-```
-
-jar 檔不在 repository 中，需要自行下載後放入 `lib/`。
-
-## MySQL 設定
-
-請先確認 MySQL 服務已啟動。
-
-Windows 可用以下指令檢查：
-
-```powershell
-Get-Service | Where-Object { $_.Name -like "*mysql*" }
-```
-
-預設連線：
-
-```properties
-url=jdbc:mysql://localhost:3306/personal_budget_book?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Taipei&createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8
-user=root
-password=
-```
-
-如果 MySQL root 有密碼，請建立：
-
-```text
-data/database.properties
-```
-
-範例：
-
-```properties
-url=jdbc:mysql://localhost:3306/personal_budget_book?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Taipei&createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8
-user=root
-password=你的MySQL密碼
-```
-
-程式啟動時會自動建立需要的資料表。
-也可以參考 `db/schema.sql` 手動建立。
+- Java 21 以上（JDK，例如 Eclipse Temurin 21）
+- Windows、macOS 或 Linux
+- 不需要另外安裝資料庫；第一次建置需要網路下載相依套件
 
 ## 執行方式
 
-在專案資料夾執行：
-
-```powershell
-.\run.bat
+```bash
+./run.sh        # macOS / Linux
+run.bat         # Windows
 ```
 
-`run.bat` 會執行：
+第一次執行會用 Maven Wrapper 建置 `target/personal-budget-book.jar`，之後直接啟動。也可以自己建置後執行：
 
-```bat
-javac -encoding UTF-8 -cp "lib/*" -d out src\app\*.java src\model\*.java src\persistence\*.java src\service\*.java src\ui\*.java
-java -cp "out;lib/*" app.BudgetBookApp
+```bash
+./mvnw -DskipTests package
+java -jar target/personal-budget-book.jar
+java -jar target/personal-budget-book.jar --demo   # 示範模式：載入六個月的示範資料，不會存檔
 ```
 
-## 常見問題
+第一次啟動會建立預設的分類與「現金、銀行帳戶、電子支付」三個錢包，並詢問是否載入示範資料。
 
-### 1. 找不到 MySQL driver
+| 參數 | 說明 |
+|---|---|
+| `--demo` | 使用記憶體資料庫並載入示範資料 |
+| `--db=<檔案>` | 指定 SQLite 資料庫檔案 |
+| `--data-dir=<資料夾>` | 設定檔與預設資料庫的位置（預設 `~/.budgetbook`） |
+| `--storage=mysql` | 改用 MySQL，搭配 `--mysql-url`、`--mysql-user`、`--mysql-password` |
+| `--smoke-test` | 不開視窗，自動檢查資料庫與各項功能後結束 |
+| `--help` | 顯示說明 |
 
-請確認 `lib/` 內有：
+## 建置與測試
 
-```text
-mysql-connector-j-*.jar
+```bash
+./mvnw verify          # 編譯、執行 JUnit 5 測試、打包 jar、產生覆蓋率報告 target/site/jacoco/
+java -Djava.awt.headless=true -jar target/personal-budget-book.jar --smoke-test
 ```
 
-### 2. 連不上 MySQL
+測試涵蓋 model、service、SQLite repository、復原與重做、CSV、報表、查詢助手，以及在沒有螢幕的環境中建立並繪製每一個頁面。
+GitHub Actions 在每次 push 時執行 `mvn -B verify` 與 smoke test，並保留打包好的 jar。
 
-請確認：
+MySQL 的整合測試在有 MySQL 伺服器時執行：
 
-- MySQL 服務正在執行
-- `data/database.properties` 的帳號密碼正確
-- 資料庫連線網址是 `localhost:3306`
-
-### 3. 出現 FlatLaf native access warning
-
-若使用 Java 25，執行時可能出現類似警告：
-
-```text
-WARNING: A restricted method in java.lang.System has been called
+```bash
+BUDGETBOOK_TEST_MYSQL_URL='jdbc:mysql://localhost:3306/budget_book_test?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false' \
+BUDGETBOOK_TEST_MYSQL_USER=root BUDGETBOOK_TEST_MYSQL_PASSWORD=密碼 ./mvnw test -Dtest=MySqlStorageTest
 ```
 
-這是 FlatLaf 在新版 Java 下的相容性提醒，不影響目前程式執行。
+README 的截圖由測試程式在沒有螢幕的環境中產生：
+
+```bash
+./mvnw test -Dtest=ScreenshotsTest -Dscreenshots=docs/images
+```
+
+## 資料庫
+
+預設使用內建的 SQLite，資料存在 `~/.budgetbook/budgetbook.db`（Windows 為 `C:\Users\<使用者>\.budgetbook\budgetbook.db`），
+備份時複製這個檔案即可。資料表在第一次啟動時自動建立，之後的版本升級由 `schema_version` 資料表記錄並自動套用。
+
+改用 MySQL 時，在 `~/.budgetbook/budgetbook.properties` 寫入：
+
+```properties
+storage=mysql
+mysql.url=jdbc:mysql://localhost:3306/budget_book?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useSSL=false
+mysql.user=root
+mysql.password=你的密碼
+```
+
+也可以用環境變數 `BUDGETBOOK_STORAGE`、`BUDGETBOOK_MYSQL_URL`、`BUDGETBOOK_MYSQL_USER`、`BUDGETBOOK_MYSQL_PASSWORD`
+或命令列參數設定，優先順序為命令列參數、環境變數、設定檔。新版的資料表與原版不同，請使用新的資料庫名稱（預設 `budget_book`）。
+兩種資料庫都透過同一組 Repository 介面存取，建表 SQL 在 `src/main/resources/db/`。
+
+## 使用技術
+
+Java 21、Swing、[FlatLaf](https://github.com/JFormDesigner/FlatLaf)、[XChart](https://github.com/knowm/XChart)、
+SQLite（[xerial sqlite-jdbc](https://github.com/xerial/sqlite-jdbc)）、MySQL Connector/J、JUnit 5、Maven。
+授權資訊見 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
