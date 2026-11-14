@@ -5,11 +5,8 @@
 
 組員：[b13204013](https://github.com/b13204013)、[NTU-B13204043](https://github.com/NTU-B13204043)、[zxc29051617](https://github.com/zxc29051617)
 
-原始版本是第 13 組在課堂上繳交的作品（Java Swing + MySQL，手機 App 風格的介面），
-書面報告、簡報與介面設計放在 [`docs/course/`](docs/course/)，繳交時的程式碼保留在 tag
-[`course-submission`](https://github.com/zxc29051617/OOP-G13-Personal-Budget-Book/tree/course-submission)。
-目前的版本是課程結束後的延伸改版：保留原版的記帳流程與種樹激勵機制，依原報告「限制與未來改進」一節的方向，
-改成分層架構、內建資料庫，並加入預算、定期交易、報表圖表與復原等功能。
+記錄收支、管理錢包、預算與定期交易，用報表圖表看自己的金錢流向，並用「種樹」的機制鼓勵每天記帳。
+資料存在內建的 SQLite，不需要另外安裝資料庫。
 
 ![總覽](docs/images/dashboard.png)
 
@@ -42,18 +39,6 @@
 
 其他頁面（錢包、分類、定期交易、儲蓄目標、設定、交易輸入視窗）的截圖在 [`docs/images/`](docs/images/)。
 
-## 與原版的差異
-
-| 項目 | 原版（課堂繳交） | 延伸版 |
-|---|---|---|
-| 金額 | `double` | `Money` 值物件（`BigDecimal`），資料庫以「分」為單位的整數保存 |
-| 資料庫 | 需要先安裝並啟動 MySQL | 內建 SQLite；MySQL 改為選用；schema 版本管理 |
-| 分類 | 程式內固定的陣列 | 資料表儲存，可自訂顏色與圖示、合併 |
-| 刪除 | 無法復原 | 新增、修改、刪除都可以復原與重做 |
-| 分析 | 本月分類長條圖 | 甜甜圈圖、月／年收支、資產趨勢、月報與年報匯出 |
-| 預算 | 每月總預算 | 總預算加上分類預算、超支提醒與月底預估 |
-| 建置 | 手動下載 jar、用 `javac` 編譯 | Maven 打包成單一 jar、Maven Wrapper、GitHub Actions |
-
 ## 專案結構
 
 ```text
@@ -82,7 +67,7 @@
 │   ├── design-patterns.md    # 使用的設計模式與位置
 │   ├── user-guide.md         # 使用說明
 │   ├── images/               # 畫面截圖
-│   └── course/               # 原版課堂繳交的書面報告、簡報、介面設計與 MySQL schema
+│   └── course/               # 書面報告、簡報、介面設計與 MySQL schema
 ├── .github/workflows/ci.yml  # GitHub Actions：建置、測試與 smoke test
 ├── pom.xml                   # Maven 設定（Java 21、打包成單一 jar）
 ├── mvnw、mvnw.cmd            # Maven Wrapper，只有 Java 也能建置
@@ -163,7 +148,7 @@ mysql.password=你的密碼
 ```
 
 也可以用環境變數 `BUDGETBOOK_STORAGE`、`BUDGETBOOK_MYSQL_URL`、`BUDGETBOOK_MYSQL_USER`、`BUDGETBOOK_MYSQL_PASSWORD`
-或命令列參數設定，優先順序為命令列參數、環境變數、設定檔。新版的資料表與原版不同，請使用新的資料庫名稱（預設 `budget_book`）。
+或命令列參數設定，優先順序為命令列參數、環境變數、設定檔。
 兩種資料庫都透過同一組 Repository 介面存取，建表 SQL 在 `src/main/resources/db/`。
 
 ## 使用技術
