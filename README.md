@@ -1,7 +1,7 @@
 # Personal Budget Book 個人記帳本
 
 臺大 114-2 物件導向程式語言（黃乾綱老師）課程第 13 組的期末專題：用 Java Swing 寫的桌面記帳程式。
-同一組的另一個專題是 [OOP-G13-Library-System](https://github.com/zxc29051617/OOP-G13-Library-System)。
+同一組的另一個專題是 OOP-G13-Library-System（🔒 私人）。
 
 組員：[b13204013](https://github.com/b13204013)、[NTU-B13204043](https://github.com/NTU-B13204043)、[zxc29051617](https://github.com/zxc29051617)
 
